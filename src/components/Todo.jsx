@@ -1,4 +1,3 @@
-// src/components/Todo.jsx
 import React, { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
 import {
@@ -6,16 +5,22 @@ import {
   addDoc,
   query,
   onSnapshot,
-  updateDoc,
   doc,
   deleteDoc,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { format } from "date-fns";
 
 const Todo = () => {
   const [tasks, setTasks] = useState([]);
   const [taskInput, setTaskInput] = useState("");
   const [priority, setPriority] = useState("Normal");
+  const [deadline, setDeadline] = useState();
+  const [error, setError] = useState("");
 
   const tasksRef = collection(db, "tasks");
 
@@ -24,7 +29,6 @@ const Todo = () => {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const tasksData = [];
       querySnapshot.forEach((doc) => {
-        // Ensure only tasks belonging to the current user are fetched
         if (doc.data().userId === auth.currentUser.uid) {
           tasksData.push({ ...doc.data(), id: doc.id });
         }
@@ -36,20 +40,21 @@ const Todo = () => {
   }, []);
 
   const addTask = async () => {
-    if (taskInput.trim() === "") return;
+    if (taskInput.trim() === "") {
+      setError("Task input cannot be empty");
+      setTimeout(() => setError(""), 3000); // Clear error after 5 seconds
+      return;
+    }
     await addDoc(tasksRef, {
       text: taskInput,
       priority,
       userId: auth.currentUser.uid,
       createdAt: new Date(),
-      deadline: null, // Placeholder for deadlines
+      deadline: deadline ? deadline.toISOString() : null,
     });
     setTaskInput("");
-  };
-
-  const updateTask = async (id, updatedFields) => {
-    const taskDoc = doc(db, "tasks", id);
-    await updateDoc(taskDoc, updatedFields);
+    setDeadline(null);
+    setError("");
   };
 
   const deleteTask = async (id) => {
@@ -62,40 +67,61 @@ const Todo = () => {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl">My To-Do List</h1>
-        <button
+    <div className="container mx-auto w-11/12 pt-16">
+      <div className="flex justify-between mb-16 ">
+        <h1 className="text-3xl font-mono">To-Do List</h1>
+        <Button
           onClick={logout}
-          className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+          variant="destructive"
+          className="text-black bg-transparent border-focus hover:border-hover hover:bg-accent w-32"
         >
           Logout
-        </button>
+        </Button>
       </div>
-      <div className="flex mb-4">
-        <input
-          type="text"
-          value={taskInput}
-          onChange={(e) => setTaskInput(e.target.value)}
-          className="flex-grow px-2 py-1 border rounded"
-          placeholder="Enter a new task"
-        />
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="ml-2 px-2 py-1 border rounded"
-        >
-          <option>Low</option>
-          <option>Normal</option>
-          <option>High</option>
-        </select>
-        <button
+      <div className="flex justify-between gap-3 mb-4">
+        <div className="flex gap-3 w-10/12">
+          <Input
+            value={taskInput}
+            onChange={(e) => setTaskInput(e.target.value)}
+            placeholder="Enter a new task"
+            className="px-4 py-2 border rounded w-3/6"
+          />
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="w-1/6 px-2 py-1 rounded border border-input focus:border-focus focus:outline-none focus:ring-0 hover:bg-accent hover:text-accent-foreground"
+          >
+            <option>Low</option>
+            <option>Normal</option>
+            <option>High</option>
+          </select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="ml-2 w-2/6 justify-start text-left font-normal focus:border-focus focus:outline-none focus:ring-0 data-[state=open]:border-focus hover:border-input rounded transition"
+              >
+                {deadline ? format(deadline, "PPP") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={deadline}
+                onSelect={setDeadline}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <Button
           onClick={addTask}
-          className="ml-2 px-4 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+          className="px-4 py-2 bg-focus text-white rounded hover:bg-focus transition w-2/12"
         >
-          Add
-        </button>
+          Add Task
+        </Button>
       </div>
+      {error && <p className="text-red-500">{error}</p>}
       <ul>
         {tasks
           .sort((a, b) => {
@@ -106,19 +132,23 @@ const Todo = () => {
             <li key={task.id} className="flex items-center mb-2">
               <span className="flex-grow">
                 {task.text} - {task.priority}
+                {task.deadline && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    Deadline: {new Date(task.deadline).toLocaleDateString()}
+                  </span>
+                )}
               </span>
-              {/* You can add buttons for updating deadlines or priorities here */}
-              <button
+              <Button
                 onClick={() => deleteTask(task.id)}
-                className="px-2 py-1 bg-red-400 text-white rounded hover:bg-red-500 transition"
+                variant="destructive"
+                className="px-2 py-1 ml-2 bg-red-500 text-white hover:bg-red-600"
               >
                 Delete
-              </button>
+              </Button>
             </li>
           ))}
       </ul>
     </div>
   );
 };
-
 export default Todo;

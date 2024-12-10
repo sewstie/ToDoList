@@ -11,10 +11,11 @@ const App = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
+
     return () => unsubscribe();
   }, []);
 
-  return <div>{user ? <Todo /> : <Auth />}</div>;
+  return <div className="w-screen bg-white">{user ? <Todo /> : <Auth />}</div>;
 };
 
 export default App;

@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
+// import { getMessaging } from "firebase/messaging"; // Removed unused import
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -17,7 +17,9 @@ const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+provider.addScope("profile");
+provider.addScope("email");
 const db = getFirestore(app);
-const messaging = getMessaging(app);
+// const messaging = getMessaging(app); // Removed unused initialization
 
-export { auth, provider, db, messaging };
+export { auth, provider, db /*, messaging */ };

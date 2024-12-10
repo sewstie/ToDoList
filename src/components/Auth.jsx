@@ -13,10 +13,10 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
+    <div className="flex items-center justify-center w-screen h-screen">
       <button
         onClick={signInWithGoogle}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+        className="px-4 py-2 bg-focus text-white rounded hover:bg-focus transition"
       >
         Sign in with Google
       </button>
