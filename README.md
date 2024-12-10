@@ -1,8 +1,28 @@
-# React + Vite
+# ToDoList
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive To-Do List application built with React, Firebase, and Tailwind CSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Google Authentication**: Secure sign-in using Google accounts.
+- **Task Management**: Add, prioritize, and delete tasks.
+- **Deadlines**: Set and display deadlines for tasks.
+- **Responsive Design**: Mobile-friendly interface using Tailwind CSS.
+
+## Technologies Used
+
+- **React**
+- **Firebase** (Authentication and Firestore)
+- **Tailwind CSS**
+- **Vite**
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js and npm installed
+- A Firebase project with configured authentication and Firestore
+
+### Installation
+
+1. **Clone the repository**:
