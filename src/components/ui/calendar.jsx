@@ -5,7 +5,22 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
+function Calendar({
+  tasks = [],
+  onDayClick,
+  className,
+  classNames,
+  showOutsideDays = true,
+  ...props
+}) {
+  const taskDates = tasks
+    .filter((task) => task.deadline)
+    .map((task) => new Date(task.deadline));
+
+  const modifiers = {
+    hasTasks: taskDates,
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -47,6 +62,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }) {
       components={{
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+      }}
+      modifiers={modifiers}
+      onDayClick={onDayClick}
+      modifiersClassNames={{
+        hasTasks: "bg-blue-200", // Highlight days with tasks
       }}
       {...props}
     />

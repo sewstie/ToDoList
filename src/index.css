@@ -31,6 +31,7 @@ body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -136,4 +137,21 @@ button:active {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Optional: Add styles for the textarea if needed */
+textarea {
+  /* Example: Smooth transition for height changes */
+  transition: height 0.2s ease;
+}
+
+/* Optional: Style for character counter */
+.text-sm.text-muted-foreground {
+  /* Customize character counter styles if needed */
+}
+
+/* Modify styles for error messages to remove opacity transitions */
+.text-red-500.text-sm.mb-1 {
+  /* Ensure no transition is applied to opacity */
+  transition: none;
 }
