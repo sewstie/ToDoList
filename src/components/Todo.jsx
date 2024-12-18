@@ -25,6 +25,9 @@ import {
   TableCell,
   TableCaption,
 } from "./ui/table";
+import sortUpIcon from "../../public/sort-up.svg";
+import sortDownIcon from "../../public/sort-down.svg";
+import { Badge } from "./ui/badge";
 
 const Todo = () => {
   const [tasks, setTasks] = useState([]);
@@ -36,6 +39,8 @@ const Todo = () => {
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [selectedDateTasks, setSelectedDateTasks] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPriorityAscending, setIsPriorityAscending] = useState(true);
+  const [isDeadlineAscending, setIsDeadlineAscending] = useState(true);
 
   const tasksRef = collection(db, "tasks");
 
@@ -101,6 +106,27 @@ const Todo = () => {
     setSelectedDateTasks(tasksOnSelectedDate);
     setIsModalOpen(true);
   };
+
+  const sortedTasks = tasks.sort((a, b) => {
+    const priorityOrder = { High: 1, Normal: 2, Low: 3 };
+    if (sortCriteria === "priority") {
+      const order = isPriorityAscending ? 1 : -1;
+      return order * (priorityOrder[a.priority] - priorityOrder[b.priority]);
+    } else if (sortCriteria === "deadline") {
+      const order = isDeadlineAscending ? 1 : -1;
+      const dateA = a.deadline ? new Date(a.deadline) : null;
+      const dateB = b.deadline ? new Date(b.deadline) : null;
+      if (dateA && dateB) {
+        return order * (dateA - dateB);
+      } else if (dateA) {
+        return -order;
+      } else if (dateB) {
+        return order;
+      }
+      return 0;
+    }
+    return 0;
+  });
 
   return (
     <div className="container mx-auto w-11/12 pt-16 overflow-x-hidden">
@@ -174,20 +200,38 @@ const Todo = () => {
         >
           {isCalendarView ? "List View" : "Calendar View"}
         </Button>
-        <div className="flex gap-4">
-          <Button
-            onClick={() => setSortCriteria("priority")}
-            className="border-focus hover:border-hover bg-transparent text-black hover:bg-accent"
-          >
-            Sort by Priority
-          </Button>
-          <Button
-            onClick={() => setSortCriteria("deadline")}
-            className="border-focus hover:border-hover bg-transparent text-black hover:bg-accent"
-          >
-            Sort by Deadline
-          </Button>
-        </div>
+        {!isCalendarView && (
+          <div className="flex gap-4">
+            <Button
+              onClick={() => {
+                setSortCriteria("priority");
+                setIsPriorityAscending(!isPriorityAscending);
+              }}
+              className="border-focus hover:border-hover bg-transparent text-black hover:bg-accent flex items-center justify-center gap-1"
+            >
+              Sort by Priority
+              <img
+                src={isPriorityAscending ? sortUpIcon : sortDownIcon}
+                alt="Sort Icon"
+                className="inline-block mt-1 w-6 h-6 transition-all"
+              />
+            </Button>
+            <Button
+              onClick={() => {
+                setSortCriteria("deadline");
+                setIsDeadlineAscending(!isDeadlineAscending);
+              }}
+              className="border-focus hover:border-hover bg-transparent text-black hover:bg-accent flex items-center justify-center gap-1"
+            >
+              Sort by Deadline
+              <img
+                src={isDeadlineAscending ? sortUpIcon : sortDownIcon}
+                alt="Sort Icon"
+                className="inline-block mt-1 w-6 h-6 transition-all"
+              />
+            </Button>
+          </div>
+        )}
       </div>
 
       {isCalendarView ? (
@@ -195,10 +239,13 @@ const Todo = () => {
           <Calendar
             tasks={tasks}
             onDayClick={handleDayClick}
-            className="w-full h-auto"
-            classNames={{
+            className="w-full h-auto mx-auto flex justify-center"
+            customClassNames={{
+              caption_label: "text-2xl font-bold text-center",
+              head_row: "mb-2", // Removed grid classes
+              head_cell: "text-lg font-semibold text-center",
+              row: "", // Removed grid classes
               cell: "h-16 w-16 text-center text-lg p-0 relative",
-              weekday: "text-lg font-semibold text-center", // Increase size of day names
               day: cn(
                 buttonVariants({ variant: "ghost" }),
                 "h-16 w-16 p-0 font-normal text-foreground bg-transparent border border-transparent focus:border-focus focus:outline-none hover:border-focus"
@@ -207,6 +254,23 @@ const Todo = () => {
                 buttonVariants({ variant: "outline" }),
                 "h-12 w-12 bg-transparent p-0 opacity-50 hover:opacity-100"
               ),
+            }}
+            renderDay={(date) => {
+              const hasTasks = tasks.some(
+                (task) =>
+                  task.deadline &&
+                  new Date(task.deadline).toDateString() === date.toDateString()
+              );
+              return (
+                <div className="relative">
+                  <div>{format(date, "d")}</div>
+                  {hasTasks && (
+                    <div className="absolute bottom-0 right-0">
+                      <Badge className="w-2 h-2 rounded-full bg-red-500" />
+                    </div>
+                  )}
+                </div>
+              );
             }}
           />
         </div>
@@ -221,62 +285,28 @@ const Todo = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tasks
-              .sort((a, b) => {
-                const priorityOrder = { High: 1, Normal: 2, Low: 3 };
-
-                if (sortCriteria === "deadline") {
-                  if (a.deadline && b.deadline) {
-                    const deadlineComparison =
-                      new Date(a.deadline) - new Date(b.deadline);
-                    if (deadlineComparison !== 0) {
-                      return deadlineComparison;
-                    }
-                  } else if (a.deadline) {
-                    return -1;
-                  } else if (b.deadline) {
-                    return 1;
-                  }
-                  return priorityOrder[a.priority] - priorityOrder[b.priority];
-                } else if (sortCriteria === "priority") {
-                  const priorityComparison =
-                    priorityOrder[a.priority] - priorityOrder[b.priority];
-                  if (priorityComparison !== 0) {
-                    return priorityComparison;
-                  }
-                  if (a.deadline && b.deadline) {
-                    return new Date(a.deadline) - new Date(b.deadline);
-                  } else if (a.deadline) {
-                    return -1;
-                  } else if (b.deadline) {
-                    return 1;
-                  }
-                  return 0;
-                }
-                return 0;
-              })
-              .map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell className="w-1/2 break-words whitespace-normal">
-                    {task.text}
-                  </TableCell>
-                  <TableCell className="w-1/6">{task.priority}</TableCell>
-                  <TableCell className="w-1/6">
-                    {task.deadline
-                      ? new Date(task.deadline).toLocaleDateString()
-                      : "N/A"}
-                  </TableCell>
-                  <TableCell className="w-1/6">
-                    <Button
-                      onClick={() => deleteTask(task.id)}
-                      variant="destructive"
-                      className="px-2 py-1 bg-red-500 text-white hover:bg-red-600"
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+            {sortedTasks.map((task) => (
+              <TableRow key={task.id}>
+                <TableCell className="w-1/2 break-words whitespace-normal">
+                  {task.text}
+                </TableCell>
+                <TableCell className="w-1/6">{task.priority}</TableCell>
+                <TableCell className="w-1/6">
+                  {task.deadline
+                    ? new Date(task.deadline).toLocaleDateString()
+                    : "N/A"}
+                </TableCell>
+                <TableCell className="w-1/6">
+                  <Button
+                    onClick={() => deleteTask(task.id)}
+                    variant="destructive"
+                    className="px-2 py-1 bg-red-500 text-white hover:bg-red-600"
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
           <TableCaption>Your Tasks</TableCaption>
         </Table>
