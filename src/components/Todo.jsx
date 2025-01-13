@@ -27,7 +27,6 @@ import {
 } from "./ui/table";
 import sortUpIcon from "../../src/assets/sort-up.svg";
 import sortDownIcon from "../../src/assets/sort-down.svg";
-import { Badge } from "./ui/badge";
 
 const Todo = () => {
   const [tasks, setTasks] = useState([]);
@@ -58,6 +57,19 @@ const Todo = () => {
     });
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsModalOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
 
   const addTask = async () => {
@@ -247,7 +259,7 @@ const Todo = () => {
               head_row: "mb-2",
               head_cell: "text-lg font-semibold text-center",
               row: "",
-              cell: "h-20 w-20 text-center text-lg p-0 relative", // Removed border
+              cell: "h-20 w-20 text-center text-lg p-0 relative",
               day: cn(
                 buttonVariants({ variant: "ghost" }),
                 "h-20 w-20 p-0 font-normal text-foreground bg-transparent border border-transparent focus:border-focus focus:outline-none hover:border-focus"
@@ -271,7 +283,6 @@ const Todo = () => {
                 <div className="relative">
                   <div>{format(date, "d")}</div>
                   {hasTasks && (
-                    // Replaced the small dot with a blue outline
                     <div className="absolute inset-0 border-2 border-blue-400 rounded-lg pointer-events-none"></div>
                   )}
                   {isSelected && (
@@ -296,7 +307,7 @@ const Todo = () => {
             {sortedTasks.map((task) => (
               <TableRow key={task.id}>
                 <TableCell className="w-1/2 break-words whitespace-normal">
-                  {task.text}
+                  {task.text} ({task.priority})
                 </TableCell>
                 <TableCell className="w-1/6">{task.priority}</TableCell>
                 <TableCell className="w-1/6">
@@ -320,14 +331,31 @@ const Todo = () => {
         </Table>
       )}
       {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <ul>
-            {selectedDateTasks.map((task) => (
-              <li key={task.id}>
-                {task.text} - {task.priority}
-              </li>
-            ))}
-          </ul>
+        <Modal
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedCalendarDate(null);
+          }}
+        >
+          <div className="flex flex-col items-center justify-center h-full">
+            {selectedDateTasks.length > 0 ? (
+              <ul>
+                {selectedDateTasks.map((task) => (
+                  <li key={task.id}>
+                    {task.text} ({task.priority})
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Nothing on that day</p>
+            )}
+            <Button
+              onClick={() => setIsModalOpen(false)}
+              className="mt-4 px-4 py-2 bg-focus text-white rounded hover:bg-focus transition"
+            >
+              Close
+            </Button>
+          </div>
         </Modal>
       )}
     </div>
