@@ -65,7 +65,8 @@ function Calendar({
       modifiers={modifiers}
       onDayClick={onDayClick}
       modifiersClassNames={{
-        hasTasks: "bg-blue-200", // Highlight days with tasks
+        hasTasks:
+          "relative after:content-[''] after:absolute after:bottom-2 after:left-1/2 after:w-1.5 after:h-1.5 after:bg-focus after:rounded-full after:-translate-x-1/2",
       }}
       {...props}
     />

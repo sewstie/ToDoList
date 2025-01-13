@@ -25,8 +25,8 @@ import {
   TableCell,
   TableCaption,
 } from "./ui/table";
-import sortUpIcon from "../../public/sort-up.svg";
-import sortDownIcon from "../../public/sort-down.svg";
+import sortUpIcon from "../../src/assets/sort-up.svg";
+import sortDownIcon from "../../src/assets/sort-down.svg";
 import { Badge } from "./ui/badge";
 
 const Todo = () => {
@@ -41,6 +41,7 @@ const Todo = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPriorityAscending, setIsPriorityAscending] = useState(true);
   const [isDeadlineAscending, setIsDeadlineAscending] = useState(true);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
 
   const tasksRef = collection(db, "tasks");
 
@@ -98,6 +99,7 @@ const Todo = () => {
   };
 
   const handleDayClick = (date) => {
+    setSelectedCalendarDate(date);
     const tasksOnSelectedDate = tasks.filter(
       (task) =>
         task.deadline &&
@@ -242,13 +244,13 @@ const Todo = () => {
             className="w-full h-auto mx-auto flex justify-center"
             customClassNames={{
               caption_label: "text-2xl font-bold text-center",
-              head_row: "mb-2", // Removed grid classes
+              head_row: "mb-2",
               head_cell: "text-lg font-semibold text-center",
-              row: "", // Removed grid classes
-              cell: "h-16 w-16 text-center text-lg p-0 relative",
+              row: "",
+              cell: "h-20 w-20 text-center text-lg p-0 relative", // Removed border
               day: cn(
                 buttonVariants({ variant: "ghost" }),
-                "h-16 w-16 p-0 font-normal text-foreground bg-transparent border border-transparent focus:border-focus focus:outline-none hover:border-focus"
+                "h-20 w-20 p-0 font-normal text-foreground bg-transparent border border-transparent focus:border-focus focus:outline-none hover:border-focus"
               ),
               nav_button: cn(
                 buttonVariants({ variant: "outline" }),
@@ -261,13 +263,19 @@ const Todo = () => {
                   task.deadline &&
                   new Date(task.deadline).toDateString() === date.toDateString()
               );
+              const isSelected =
+                selectedCalendarDate &&
+                new Date(selectedCalendarDate).toDateString() ===
+                  date.toDateString();
               return (
                 <div className="relative">
                   <div>{format(date, "d")}</div>
                   {hasTasks && (
-                    <div className="absolute bottom-0 right-0">
-                      <Badge className="w-2 h-2 rounded-full bg-red-500" />
-                    </div>
+                    // Replaced the small dot with a blue outline
+                    <div className="absolute inset-0 border-2 border-blue-400 rounded-lg pointer-events-none"></div>
+                  )}
+                  {isSelected && (
+                    <div className="absolute inset-0 border-2 border-focus rounded-lg pointer-events-none"></div>
                   )}
                 </div>
               );
