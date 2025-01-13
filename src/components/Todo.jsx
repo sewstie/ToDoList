@@ -307,7 +307,7 @@ const Todo = () => {
             {sortedTasks.map((task) => (
               <TableRow key={task.id}>
                 <TableCell className="w-1/2 break-words whitespace-normal">
-                  {task.text} ({task.priority})
+                  {task.text}
                 </TableCell>
                 <TableCell className="w-1/6">{task.priority}</TableCell>
                 <TableCell className="w-1/6">
@@ -342,7 +342,7 @@ const Todo = () => {
               <ul>
                 {selectedDateTasks.map((task) => (
                   <li key={task.id}>
-                    {task.text} ({task.priority})
+                    {task.text} - {task.priority}
                   </li>
                 ))}
               </ul>
